@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Ajedrez</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Juego de Ajedrez</h1>
+    <div id="board-container">
+        <div id="board">
+            {{ board_svg | safe }}
+        </div>
+    </div>
+
+    <form action="{{ url_for('move') }}" method="post" class="controls">
+        <input type="text" name="move" placeholder="Ej: e2e4" required>
+        
+        <select name="promotion">
+            <option value="q">Reina</option>
+            <option value="r">Torre</option>
+            <option value="b">Alfil</option>
+            <option value="n">Caballo</option>
+        </select>
+        <button type="submit">Hacer Movimiento</button>
+    </form>
+
+    <form action="{{ url_for('reset') }}" method="post" class="controls1">
+        <button type="submit">Reiniciar Tablero</button>
+    </form>
+
+    {% if message %}
+    <div id="message">{{ message }}</div>
+    {% endif %}
+</body>
+</html>

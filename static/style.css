@@ -1,0 +1,118 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+#board-container {
+    width: 100%;
+    max-width: 480px;
+    background-color: white;
+    border: 2px solid #444;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    margin-bottom: 20px;
+}
+
+#board svg {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 480px;
+}
+
+.controls input,
+.controls select {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.controls input {
+    width: 100%;
+    max-width: 150px;
+}
+
+.controls select {
+    width: auto;
+}
+
+.controls button {
+    padding: 10px 15px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #008cba;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.controls button:hover {
+    background-color: #005f7f;
+}
+
+.controls1 {
+    position: absolute;
+    top: 20px; 
+    right: 20px; 
+}
+
+.controls1 button {
+    padding: 10px 15px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #008cba;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.controls1 button:hover {
+    background-color: #005f7f;
+}
+
+
+#message {
+    margin-top: 20px;
+    font-size: 18px;
+    color: #333;
+    text-align: center;
+}
+
+@media (max-width: 500px) {
+    .controls {
+        flex-direction: column;
+    }
+
+    .controls input,
+    .controls select,
+    .controls button {
+        width: 100%;
+        max-width: none;
+    }
+}
