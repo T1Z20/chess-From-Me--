@@ -3,15 +3,7 @@ import chess as ch
 import chess.svg
 import random
 from ChessING import Engine
-
-
-
-
-
-
-
-
-
+import os
 
 
 app = Flask(__name__)
@@ -111,4 +103,4 @@ def reset():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
