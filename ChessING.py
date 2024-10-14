@@ -101,36 +101,30 @@ class Engine:
             return newCandidate
         else:
             return move
+    
+    def search_all_captures(self, alpha, beta):
+        evaluation = self.evalFunct()
+    
+        if evaluation >= beta:
+            return beta
+        
+        alpha = max(alpha, evaluation)
+        
+        capture_moves = [move for move in list(self.board.legal_moves) if self.board.is_capture(move)]
+        
+        capture_moves.sort(key=lambda move: self.board.piece_type_at(move.to_square), reverse=True)
+
+        for move in capture_moves:
+            # Make the move
+            self.board.push(move)
             
-        def search_all_captures(alpha, beta):
-        
-            evaluation = self.evalFunct()
-        
+            evaluation = -self.search_all_captures(-beta, -alpha)
+            
+            self.board.pop()
+            
             if evaluation >= beta:
                 return beta
             
             alpha = max(alpha, evaluation)
-            
-            
-            capture_moves = [move for move in list(self.board.legal_moves) if self.board.is_capture(move)]
-            
-            
-            capture_moves.sort(key=lambda move: self.board.piece_type_at(move.to_square), reverse=True)
-
-           
-            for move in capture_moves:
-                # Make the move
-                self.board.push(move)
-                
-                
-                evaluation = -self.search_all_captures(-beta, -alpha)
-                
-                
-                self.board.pop()
-                
-                if evaluation >= beta:
-                    return beta
-                
-                alpha = max(alpha, evaluation)
-            
-            return alpha
+        
+        return alpha
