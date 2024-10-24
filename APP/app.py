@@ -41,7 +41,7 @@ def move():
         message = str(e)
 
     try:
-        best_move = INGDIY.MEJORmov(board, 3, ch.BLACK)
+        best_move = INGDIY.MEJORmov(board, 5, ch.BLACK)
 
         if best_move and board.is_legal(best_move):
             board.push(best_move)

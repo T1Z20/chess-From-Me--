@@ -120,6 +120,41 @@ def ordenar_movimientos(board, movimientos, color):
     return [movimiento for movimiento, score in puntajes_movimientos]
 
 
+#Esta funcion existe debido a que al llegar al final del arbol no tenia en cuenta que en la siguiente jugada todo podia darse vuelta siempre que no haya una captura 
+#Primero se evalua la posicion actual
+#si la evaluacion es lo suficiente mente buena se devuelve beta indicando que no hay que explorar mas 
+#en caso contrario 
+#Se actualiza alpha con el valor maximo entre el y evaluacion 
+#luego se hace lo mismo que en ING (se genera una lista de mov y se ordena)
+
+
+def buscar_capturas(board , alpha , beta , color):
+    evaluacion = Eval_FUN(board , color)
+
+    if evaluacion >= beta:
+            return beta
+    alpha = max(alpha, evaluacion)
+
+    capture_moves = list(board.legal_moves)  # Filter captures here
+    capture_moves = ordenar_movimientos(board, capture_moves, color)
+
+    # Ahora se empieza el clasico bucle recursivo para buscar el mejor camino siguiendo con la implementacion de Poda 
+
+    for move in capture_moves:
+        board.push(move)
+        value = -buscar_capturas(board, -beta, -alpha, color)
+        board.pop()
+
+        if value >= beta:
+            return beta
+        alpha = max(alpha, value)
+    
+    #Una vez se exploro todo se devuelve alpha que es la mejor jugada dentro de ese conjunto 
+    
+    return alpha
+
+
+
 #Usamos MINMAX y poda alfa-beta de menera recursiva hasta el maximo(cantidad de profundiad)
 #En caso de que sea movimiento de la "IA" los valores buscaran el MAXIMO (mejor ataque movimiento posible) 
 # En caso de ser el movimiento del jugador se buscara el MINIMO (Mejor movimiento a recibir ) y lo restara al max 
@@ -131,7 +166,7 @@ def ordenar_movimientos(board, movimientos, color):
         # El valor inicial de beta es +∞ y se actualiza conforme encontramos peores opciones para el jugador minimizador.
 
 
-def ING(board, candidate, profundidad_actual, profundidad, color):
+def ING(board, candidate, profundidad_actual, profundidad, color, alpha=float("-inf"), beta=float("inf")):
     # Si se alcanza la profundidad o no hay movimientos legales, da el  el valor de evaluación 
     if profundidad_actual == profundidad or board.legal_moves.count() == 0:
         return Eval_FUN(board, color)
@@ -147,9 +182,6 @@ def ING(board, candidate, profundidad_actual, profundidad, color):
      # float("inf") es similar al valor beta (para el minimizador).
 
     nuevo_movimiento = float("-inf") if profundidad_actual % 2 != 0 else float("inf") 
-    
- 
-    
     mejor_movimiento = None  #  guardar el mejor movimiento en el primer nivel
     
     
@@ -157,29 +189,26 @@ def ING(board, candidate, profundidad_actual, profundidad, color):
     for movimiento_actual in lista_mov_ordenada:
         board.push(movimiento_actual)
         
-        
-        
-        
-        
         # Obtener valor (explorando repercusiones)
         # dependiendo si esta max o min  ek valor de nuevo movimiento se actualiza debido a la recursividad 
-        value = ING(board, nuevo_movimiento, profundidad_actual + 1, profundidad, color) 
+        value = ING(board, nuevo_movimiento, profundidad_actual + 1, profundidad, color, alpha=float("-inf"), beta=float("inf")) 
+        
+        
         
         # Algoritmo minimax básico
-        if value > nuevo_movimiento and profundidad_actual % 2 != 0:  # Maximizando (turno del motor)
-            if profundidad_actual == 1:
-                mejor_movimiento = movimiento_actual
-            nuevo_movimiento = value
-        elif value < nuevo_movimiento and profundidad_actual % 2 == 0:  # Minimizando (turno del jugador)
-            nuevo_movimiento = value
-            
-            
-            
-        # Poda alfa-beta
-        # Resumidamente compara el valor actual con candidato anterior y en caso de no ser mejor lo "poda" es decir corta la rama 
-        if (candidate is not None and 
-            ((value < candidate and profundidad_actual % 2 == 0) or  # Poda en nodo MIN
-             (value > candidate and profundidad_actual % 2 != 0))):  # Poda en nodo MAX
+        if profundidad_actual % 2 != 0:  # Maximizador
+            if value > nuevo_movimiento:
+                nuevo_movimiento = value
+                if profundidad_actual == 1:
+                    mejor_movimiento = movimiento_actual
+            alpha = max(alpha, nuevo_movimiento)
+        else:  # Minimizer
+            if value < nuevo_movimiento:
+                nuevo_movimiento = value
+            beta = min(beta, nuevo_movimiento)
+        
+        # Alpha-beta pruning
+        if beta <= alpha:
             board.pop()
             break
         
@@ -191,3 +220,12 @@ def ING(board, candidate, profundidad_actual, profundidad, color):
         return nuevo_movimiento
     else:
         return mejor_movimiento
+    
+    
+    
+    
+    
+
+
+
+
