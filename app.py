@@ -2,7 +2,7 @@ from flask import Flask, request, render_template, redirect, url_for
 import chess as ch
 import chess.svg
 import random
-from ChessING import Engine
+import INGDIY
 import os
 
 
@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 board = chess.Board()
 
-bot = Engine(board, 3, color=ch.BLACK)
+
 
 
 
@@ -41,10 +41,10 @@ def move():
         message = str(e)
 
     try:
-        best_move = bot.getBestMove()
-        chess_move = create_chess_move(best_move , promotion)
-        if chess_move and board.is_legal(chess_move):
-            board.push(chess_move)
+        best_move = INGDIY.MEJORmov(board, 3, ch.BLACK)
+
+        if best_move and board.is_legal(best_move):
+            board.push(best_move)
             game_status = check_game_status()
             if game_status:
                 message = game_status
