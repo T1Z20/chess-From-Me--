@@ -2,7 +2,7 @@ from flask import Flask, request, render_template, redirect, url_for
 import chess as ch
 import chess.svg
 import random
-import INGDIY
+import INGDIY as INGDIY
 import os
 
 

@@ -50,7 +50,7 @@ def ForceKingToCornerEndgameEval(board, color):
 
 def Eval_FUN(board, color):
     points = 0
-    
+    total_piezas = 0 
     for i in range(64):
         # Suma los valores para cada casilla 
         points += Valores(board, ch.SQUARES[i], color)
