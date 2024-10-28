@@ -17,56 +17,14 @@ def MEJORmov(board, profundidad, color):
 
 
 
-
-def ForceKingToCornerEndgameEval(board, color):
-    evaluation = 0
-
-    # Obtener las posiciones de los reyes
-    friendly_king_square = board.king(color)
-    opponent_king_square = board.king(not color)
-
-    # Obtener las coordenadas del rey enemigo
-    opponent_king_rank = ch.square_rank(opponent_king_square)
-    opponent_king_file = ch.square_file(opponent_king_square)
-
-    # Distancia del rey oponente al centro del tablero
-    opponent_king_dst_to_centre_file = max(3 - opponent_king_file, opponent_king_file - 4)
-    opponent_king_dst_to_centre_rank = max(3 - opponent_king_rank, opponent_king_rank - 4)
-    opponent_king_dst_from_centre = opponent_king_dst_to_centre_file + opponent_king_dst_to_centre_rank
-    evaluation += opponent_king_dst_from_centre
-
-    # Obtener las coordenadas del rey propio
-    friendly_king_rank = ch.square_rank(friendly_king_square)
-    friendly_king_file = ch.square_file(friendly_king_square)
-
-    # Distancia entre los reyes
-    dst_between_kings_file = abs(friendly_king_file - opponent_king_file)
-    dst_between_kings_rank = abs(friendly_king_rank - opponent_king_rank)
-    dst_between_kings = dst_between_kings_file + dst_between_kings_rank
-    evaluation += 14 - dst_between_kings
-
-    return evaluation
-
-
 def Eval_FUN(board, color):
     points = 0
-    total_piezas = 0 
+    
     for i in range(64):
         # Suma los valores para cada casilla 
         points += Valores(board, ch.SQUARES[i], color)
     
     points += MATE(board, color) + Apertura(board, color) + 0.001 * rd.random()
-    
-    
-    for i in range(64):  # Hay 64 casillas en un tablero de ajedrez
-        pieza = board.piece_at(i)  # Obtiene la pieza en la posición i
-        if pieza:
-            total_piezas += 1  # Aumenta el contador si hay una pieza
-    
-    
-    if total_piezas < 10:  # Ajusta según lo que consideres un final de partida
-        points += ForceKingToCornerEndgameEval(board, color)
-
     return points
 
 
