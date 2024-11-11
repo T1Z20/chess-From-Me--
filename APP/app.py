@@ -2,7 +2,7 @@ from flask import Flask, request, render_template, redirect, url_for
 import chess as ch
 import chess.svg
 import random
-import INGDIY as INGDIY
+import INGDIY 
 import os
 
 
@@ -41,7 +41,7 @@ def move():
         message = str(e)
 
     try:
-        best_move = INGDIY.MEJORmov(board, 5, ch.BLACK)
+        best_move = INGDIY.MEJORmov(board, 4, ch.BLACK)
 
         if best_move and board.is_legal(best_move):
             board.push(best_move)

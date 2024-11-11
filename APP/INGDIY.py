@@ -118,14 +118,12 @@ def ordenar_movimientos(board, movimientos, color):
 
     # Devolver solo los movimientos ordenados
     return [movimiento for movimiento, score in puntajes_movimientos]
-
-
-#Esta funcion existe debido a que al llegar al final del arbol no tenia en cuenta que en la siguiente jugada todo podia darse vuelta siempre que no haya una captura 
-#Primero se evalua la posicion actual
-#si la evaluacion es lo suficiente mente buena se devuelve beta indicando que no hay que explorar mas 
-#en caso contrario 
-#Se actualiza alpha con el valor maximo entre el y evaluacion 
-#luego se hace lo mismo que en ING (se genera una lista de mov y se ordena)
+    #Esta funcion existe debido a que al llegar al final del arbol no tenia en cuenta que en la siguiente jugada todo podia darse vuelta siempre que no haya una captura 
+    #Primero se evalua la posicion actual
+    #si la evaluacion es lo suficiente mente buena se devuelve beta indicando que no hay que explorar mas 
+    #en caso contrario 
+    #Se actualiza alpha con el valor maximo entre el y evaluacion 
+    #luego se hace lo mismo que en ING (se genera una lista de mov y se ordena)
 
 
 def buscar_capturas(board , alpha , beta , color):

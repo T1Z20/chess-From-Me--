@@ -3,35 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sanjochess</title>
+    <title>Ajedrez Online</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1></h1>
-    <div id="board-container">
-        <div id="board">
-            {{ board_svg | safe }}
-        </div>
+    <!-- gpt -->
+    <div id="home-screen">
+        <div class="chess-piece">♔</div>
+        <h1>SanjoChess</h1>
+        
+        <button onclick="startGame()" class="play-button">Jugar</button>
     </div>
 
-    <form action="{{ url_for('move') }}" method="post" class="controls">
-        <input type="text" name="move" placeholder="Ej: e2e4" required>
+    <!-- GPT -->
+    <div id="game-screen">
+        <button onclick="showHome()" class="menu-button">Menú Principal</button>
+        <div id="board-container">
+            <div id="board">
+                {{ board_svg | safe }}
+            </div>
+        </div>
+
+        <div class="controls">
+            <form id="moveForm" onsubmit="handleMove(event)">
+                <input type="text" name="move" placeholder="Ingrese su movimiento" required>
+                
+                
+                <div class="promotion-container">
+                    <select name="promotion">
+                        <option value="q">Reina</option>
+                        <option value="r">Torre</option>
+                        <option value="b">Alfil</option>
+                        <option value="n">Caballo</option>
+                    </select>
+                    <span class="info-icon" title="Selecciona una pieza para la promoción en caso de que un peón llegue al final del tablero.">ⓘ</span>
+                </div>
         
-        <select name="promotion">
-            <option value="q">Reina</option>
-            <option value="r">Torre</option>
-            <option value="b">Alfil</option>
-            <option value="n">Caballo</option>
-        </select>
-        <button type="submit">Hacer Movimiento</button>
-    </form>
+                <button type="submits">Hacer Movimiento</button>
+            </form>
+            
+            <form id="resetForm" onsubmit="handleReset(event)">
+                <button type="submit">Reiniciar Tablero</button>
+            </form>
+        </div>
+        
 
-    <form action="{{ url_for('reset') }}" method="post" class="controls1">
-        <button type="submit">Reiniciar Tablero</button>
-    </form>
+        {% if message %}
+        <div id="message">
+            {{ message }}
+        </div>
+        {% endif %}
+    </div>
 
-    {% if message %}
-    <div id="message">{{ message }}</div>
-    {% endif %}
+    <script>
+        // GPT A FULL
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('gameStarted') === 'true') {
+                startGame();
+            }
+        });
+
+        function startGame() {
+            document.getElementById('home-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            localStorage.setItem('gameStarted', 'true');
+        }
+
+        function showHome() {
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('home-screen').style.display = 'flex';
+            localStorage.removeItem('gameStarted');
+        }
+
+        async function handleMove(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch("{{ url_for('move') }}", {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                // Actualizar el tablero
+                const newBoard = doc.querySelector('#board').innerHTML;
+                document.querySelector('#board').innerHTML = newBoard;
+
+                // Actualizar el mensaje si existe
+                const newMessage = doc.querySelector('#message');
+                const currentMessage = document.querySelector('#message');
+                if (newMessage) {
+                    if (currentMessage) {
+                        currentMessage.innerHTML = newMessage.innerHTML;
+                    } else {
+                        const messageDiv = document.createElement('div');
+                        messageDiv.id = 'message';
+                        messageDiv.innerHTML = newMessage.innerHTML;
+                        document.querySelector('.controls').after(messageDiv);
+                    }
+                } else if (currentMessage) {
+                    currentMessage.remove();
+                }
+
+                // Limpiar el campo de movimiento
+                form.reset();
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function handleReset(event) {
+            event.preventDefault();
+            try {
+                const response = await fetch("{{ url_for('reset') }}", {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                    startGame();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+    </script>
 </body>
 </html>
