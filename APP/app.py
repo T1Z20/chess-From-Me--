@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, url_for
+from flask import Flask, request, render_template, redirect, url_for, jsonify
 import chess as ch
 import chess.svg
 import random
@@ -21,40 +21,64 @@ def index():
     board_svg = chess.svg.board(board)
     return render_template('index.html', board_svg=board_svg)
 
+@app.route('/legal_moves')
+def get_legal_moves():
+    legal_moves = []
+    for move in board.legal_moves:
+        move_uci = move.uci()
+        from_square = chess.square_name(move.from_square)
+        to_square = chess.square_name(move.to_square)
+        move_san = board.san(move)
+        legal_moves.append({
+            'uci': move_uci,
+            'san': move_san,
+            'from': from_square,
+            'to': to_square
+        })
+    return jsonify(legal_moves)
+
+
 @app.route('/move', methods=['POST'])
 def move():
+    global board  # Aseguramos que estamos utilizando la variable global `board`
     
+    # Obtener el movimiento del jugador desde el formulario
     move = request.form.get('move')
-    promotion = request.form.get('promotion', 'q')  
-
+    promotion = request.form.get('promotion', 'q')  # Promoción por defecto: dama
     message = ""
-    try:
-        chess_move = create_chess_move(move, promotion)
-        if chess_move and board.is_legal(chess_move):
-            board.push(chess_move)
-            game_status = check_game_status()
-            if game_status:
-                message = game_status
-        else:
-            message = 'Movimiento ilegal'
-    except ValueError as e:
-        message = str(e)
 
+    # Validar el movimiento del jugador
+    while True:
+        try:
+            chess_move = create_chess_move(move, promotion)
+            if chess_move and board.is_legal(chess_move):
+                board.push(chess_move)
+                game_status = check_game_status()
+                if game_status:
+                    message = game_status
+                break  # Salir del bucle si el movimiento es válido
+            else:
+                message = 'Movimiento ilegal. Inténtalo de nuevo.'
+                return render_template('index.html', board_svg=chess.svg.board(board), message='Movimiento ilegal. Inténtalo de nuevo.')
+        except ValueError as e:
+            message = str(e)
+            return render_template('index.html', board_svg=chess.svg.board(board), message='Movimiento ilegal. Inténtalo de nuevo.')
+
+    # Movimiento del bot
     try:
         best_move = INGDIY.MEJORmov(board, 4, ch.BLACK)
-
         if best_move and board.is_legal(best_move):
             board.push(best_move)
             game_status = check_game_status()
             if game_status:
                 message = game_status
         else:
-            message = 'Movimiento ilegal'
+            message = 'Movimiento ilegal del bot (esto no debería ocurrir).'
     except ValueError as e:
         message = str(e)
     
+    # Renderizar el tablero actualizado
     board_svg = chess.svg.board(board)
-    
     return render_template('index.html', board_svg=board_svg, message=message)
 
     

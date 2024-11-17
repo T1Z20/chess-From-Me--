@@ -7,15 +7,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <!-- gpt -->
     <div id="home-screen">
         <div class="chess-piece">♔</div>
         <h1>SanjoChess</h1>
-        
         <button onclick="startGame()" class="play-button">Jugar</button>
     </div>
 
-    <!-- GPT -->
     <div id="game-screen">
         <button onclick="showHome()" class="menu-button">Menú Principal</button>
         <div id="board-container">
@@ -26,8 +23,10 @@
 
         <div class="controls">
             <form id="moveForm" onsubmit="handleMove(event)">
-                <input type="text" name="move" placeholder="Ingrese su movimiento" required>
-                
+                <div class="move-input-container">
+                    <input type="text" name="move" id="moveInput" placeholder="Ingrese su movimiento" required>
+                    <div id="moveSuggestions"></div>
+                </div>
                 
                 <div class="promotion-container">
                     <select name="promotion">
@@ -39,14 +38,13 @@
                     <span class="info-icon" title="Selecciona una pieza para la promoción en caso de que un peón llegue al final del tablero.">ⓘ</span>
                 </div>
         
-                <button type="submits">Hacer Movimiento</button>
+                <button type="submit">Hacer Movimiento</button>
             </form>
             
             <form id="resetForm" onsubmit="handleReset(event)">
                 <button type="submit">Reiniciar Tablero</button>
             </form>
         </div>
-        
 
         {% if message %}
         <div id="message">
@@ -56,12 +54,71 @@
     </div>
 
     <script>
-        // GPT A FULL
+        let legalMoves = [];
+
+        // Cargar movimientos legales cuando se inicia la página
+        async function fetchLegalMoves() {
+            try {
+                const response = await fetch('/legal_moves');
+                legalMoves = await response.json();
+            } catch (error) {
+                console.error('Error fetching legal moves:', error);
+            }
+        }
+
+        // Inicializar cuando la página carga
         document.addEventListener('DOMContentLoaded', function() {
             if (localStorage.getItem('gameStarted') === 'true') {
                 startGame();
             }
+            fetchLegalMoves();
+            setupMoveInput();
         });
+
+        function setupMoveInput() {
+    const moveInput = document.getElementById('moveInput');
+    const suggestionsDiv = document.getElementById('moveSuggestions');
+
+    moveInput.addEventListener('input', (e) => {
+        const value = e.target.value.toLowerCase();
+
+        // Limpiar sugerencias previas antes de generar nuevas
+        suggestionsDiv.innerHTML = "";
+
+        // Filtrar movimientos legales según la entrada
+        const filteredMoves = legalMoves.filter(move =>
+            move.uci.toLowerCase().includes(value) ||
+            move.san.toLowerCase().includes(value) ||
+            `${move.from}${move.to}`.toLowerCase().includes(value)
+        );
+
+        // Si hay sugerencias, muéstralas, de lo contrario oculta el contenedor
+        if (value && filteredMoves.length > 0) {
+            suggestionsDiv.innerHTML = filteredMoves
+                .map(move => `
+                    <div class="suggestion" onclick="selectMove('${move.uci}')">
+                        ${move.san} (${move.from}-${move.to})
+                    </div>
+                `)
+                .join('');
+            suggestionsDiv.style.display = 'block';
+        } else {
+            suggestionsDiv.style.display = 'none';
+        }
+    });
+
+    // Ocultar las sugerencias si el usuario hace clic fuera
+    document.addEventListener('click', (e) => {
+        if (!moveInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+            suggestionsDiv.style.display = 'none';
+        }
+    });
+}
+
+        function selectMove(move) {
+            document.getElementById('moveInput').value = move;
+            document.getElementById('moveSuggestions').style.display = 'none';
+        }
 
         function startGame() {
             document.getElementById('home-screen').style.display = 'none';
@@ -76,46 +133,50 @@
         }
 
         async function handleMove(event) {
-            event.preventDefault();
-            const form = event.target;
-            const formData = new FormData(form);
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
 
-            try {
-                const response = await fetch("{{ url_for('move') }}", {
-                    method: 'POST',
-                    body: formData
-                });
+    try {
+        const response = await fetch("{{ url_for('move') }}", {
+            method: 'POST',
+            body: formData
+        });
 
-                const html = await response.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
 
-                // Actualizar el tablero
-                const newBoard = doc.querySelector('#board').innerHTML;
-                document.querySelector('#board').innerHTML = newBoard;
+        // Actualizar el tablero
+        const newBoard = doc.querySelector('#board').innerHTML;
+        document.querySelector('#board').innerHTML = newBoard;
 
-                // Actualizar el mensaje si existe
-                const newMessage = doc.querySelector('#message');
-                const currentMessage = document.querySelector('#message');
-                if (newMessage) {
-                    if (currentMessage) {
-                        currentMessage.innerHTML = newMessage.innerHTML;
-                    } else {
-                        const messageDiv = document.createElement('div');
-                        messageDiv.id = 'message';
-                        messageDiv.innerHTML = newMessage.innerHTML;
-                        document.querySelector('.controls').after(messageDiv);
-                    }
-                } else if (currentMessage) {
-                    currentMessage.remove();
-                }
-
-                // Limpiar el campo de movimiento
-                form.reset();
-            } catch (error) {
-                console.error('Error:', error);
+        // Actualizar el mensaje si existe
+        const newMessage = doc.querySelector('#message');
+        const currentMessage = document.querySelector('#message');
+        if (newMessage) {
+            if (currentMessage) {
+                currentMessage.innerHTML = newMessage.innerHTML;
+            } else {
+                const messageDiv = document.createElement('div');
+                messageDiv.id = 'message';
+                messageDiv.innerHTML = newMessage.innerHTML;
+                document.querySelector('.controls').after(messageDiv);
             }
+        } else if (currentMessage) {
+            currentMessage.remove();
         }
+
+        // Recargar movimientos legales después de cada movimiento
+        await fetchLegalMoves();
+
+        // Limpiar el campo de movimiento y sugerencias
+        form.reset();  // Limpia el campo del formulario
+        document.getElementById('moveSuggestions').innerHTML = ""; // Limpia las sugerencias
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
 
         async function handleReset(event) {
             event.preventDefault();
