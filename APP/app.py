@@ -77,21 +77,17 @@ def move():
     except ValueError as e:
         message = str(e)
     
-    # Renderizar el tablero actualizado
+    # tablero actualizado
     board_svg = chess.svg.board(board)
     return render_template('index.html', board_svg=board_svg, message=message)
 
     
-
+ #Funcion que transforma el movimiento ingresado en un movimiento legal y agrega en caso de necesitarlo la promo 
 def create_chess_move(move, promotion):
-    # If move is already a Move object, return it directly
+    
     if isinstance(move, chess.Move):
         return move
-
-    # Otherwise, treat it as a UCI string and convert it to a Move object
     chess_move = chess.Move.from_uci(move)
-
-    # Handle pawn promotion if needed
     if (board.piece_at(chess_move.from_square) and 
         board.piece_at(chess_move.from_square).piece_type == chess.PAWN and
         chess_move.to_square in chess.SquareSet(chess.BB_BACKRANKS)):
